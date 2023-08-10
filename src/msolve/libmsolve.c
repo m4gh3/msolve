@@ -29,7 +29,7 @@
 #include "primes.c"
 #include "../crt/mpz_CRT_ui.c"
 #include "../crt/mpq_reconstruct.c"
-#include "../usolve/data_usolve.c"
+#include "../usolve/data_usolve.h"
 #include "../usolve/libusolve.h"
 #include "../neogb/libneogb.h"
 #include "msolve.c"

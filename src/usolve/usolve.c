@@ -50,7 +50,7 @@
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 #endif
 
-#include "data_usolve.c"
+#include "data_usolve.h"
 #include "utils.c"
 #include "taylor_shift.c"
 #include "descartes.c"
