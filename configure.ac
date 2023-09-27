@@ -92,12 +92,21 @@ AC_CONFIG_LINKS([
  input_files/F4SAT-31.ms:input_files/F4SAT-31.ms
  output_files/F4SAT-31.res:output_files/F4SAT-31.res
  test/diff/diff_F4SAT-31.sh:test/diff/diff_F4SAT-31.sh
+ input_files/F4SAT-byone-31.ms:input_files/F4SAT-byone-31.ms
+ output_files/F4SAT-byone-31.res:output_files/F4SAT-byone-31.res
+ test/diff/diff_F4SAT-byone-31.sh:test/diff/diff_F4SAT-byone-31.sh
  input_files/kat6-31.ms:input_files/kat6-31.ms
  output_files/kat6-31.res:output_files/kat6-31.res
  test/diff/diff_kat6-31.sh:test/diff/diff_kat6-31.sh
  input_files/kat7-qq.ms:input_files/kat7-qq.ms
  output_files/kat7-qq.res:output_files/kat7-qq.res
  test/diff/diff_kat7-qq.sh:test/diff/diff_kat7-qq.sh
+ input_files/multy-16.ms:input_files/multy-16.ms
+ output_files/multy-16.res:output_files/multy-16.res
+ test/diff/diff_multy-16.sh:test/diff/diff_multy-16.sh
+ input_files/multy-31.ms:input_files/multy-31.ms
+ output_files/multy-31.res:output_files/multy-31.res
+ test/diff/diff_multy-31.sh:test/diff/diff_multy-31.sh
  input_files/multy-qq.ms:input_files/multy-qq.ms
  output_files/multy-qq.res:output_files/multy-qq.res
  test/diff/diff_multy-qq.sh:test/diff/diff_multy-qq.sh
@@ -148,5 +157,8 @@ AC_CONFIG_LINKS([
  input_files/mq_2_1.ms:input_files/mq_2_1.ms
  output_files/mq_2_1.res:output_files/mq_2_1.res
  test/diff/diff_mq_2_1.sh:test/diff/diff_mq_2_1.sh
+ input_files/input-overflow-16.ms:input_files/input-overflow-16.ms
+ output_files/input-overflow-16.res:output_files/input-overflow-16.res
+ test/diff/diff_input-overflow-16.sh:test/diff/diff_input-overflow-16.sh
 ])
 AC_OUTPUT

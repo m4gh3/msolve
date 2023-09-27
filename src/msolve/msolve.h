@@ -23,6 +23,8 @@
 
 #include "msolve-data.h"
 
+void display_gens(FILE *fh, data_gens_ff_t *gens);
+
 int msolve_trace_qq(
         mpz_param_t mpz_param,
         param_t **nmod_param,

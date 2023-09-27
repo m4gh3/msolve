@@ -24,6 +24,7 @@
 #include <flint/mpn_extras.h>
 #include <flint/nmod_poly.h>
 #include <flint/nmod_poly_factor.h>
+#include <flint/ulong_extras.h>
 
 
 typedef uint32_t szmat_t;

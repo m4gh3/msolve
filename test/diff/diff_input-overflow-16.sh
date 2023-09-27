@@ -1,6 +1,7 @@
 #!/bin/bash
 
-file=mq_2_1
+file=input-overflow-16
+
 
 $(pwd)/msolve -f input_files/$file.ms -o test/diff/$file.res \
       -l 2 -t 1
