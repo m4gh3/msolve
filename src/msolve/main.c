@@ -88,11 +88,13 @@ void gens2msolve(data_gens_ff_t *gens, fmpq_mpoly_t *polys, size_t n, fmpq_mpoly
 }
 
 //nr_gens is a pointer to the number of generators
-static inline void get_data_from_flint(data_gens_ff_t *gens ){
+static inline data_gens_ff_t *get_data_from_flint(void){
 
   fmpq_mpoly_ctx_t ctx;
 	
   fmpq_mpoly_ctx_init(ctx, 6, ORD_DEGREVLEX );
+
+  data_gens_ff_t *gens = (data_gens_ff_t *)(malloc(sizeof(data_gens_ff_t)));
 
   gens->nvars = fmpq_mpoly_ctx_nvars(ctx);
   
@@ -183,7 +185,7 @@ static inline void get_data_from_flint(data_gens_ff_t *gens ){
   //
   gens->vnames = vnames;
 
-  return;
+  return gens;
  
 }
 
@@ -227,10 +229,7 @@ int main(int argc, char **argv){
     /**
        We get from files the requested data. 
     **/
-    data_gens_ff_t *gens = allocate_data_gens();
-
-    
-    get_data_from_flint(gens);
+    data_gens_ff_t *gens = get_data_from_flint();
 #ifdef IODEBUG
     display_gens(stdout, gens);
 #endif
