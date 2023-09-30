@@ -88,28 +88,15 @@ void gens2msolve(data_gens_ff_t *gens, fmpq_mpoly_t *polys, size_t n, fmpq_mpoly
 }
 
 //nr_gens is a pointer to the number of generators
-static inline void get_data_from_flint(char *fn, int32_t *nr_vars,
-                                      int32_t *field_char,
-                                      int32_t *nr_gens, data_gens_ff_t *gens){
-  //*nr_vars = 6; //get_nvars(fn);
-  //*nr_gens = 6; //get_ngenerators(fn);
-
-  //const int max_line_size  = 1024*1024;//1073741824;
-  //char *line  = (char *)calloc((nelts_t)max_line_size, sizeof(char));
-
-  //FILE *fh  = fopen(fn,"r");
-
-  /** allocate memory for storing variable names */
-
-  *field_char = 0;
+static inline void get_data_from_flint(data_gens_ff_t *gens ){
 
   fmpq_mpoly_ctx_t ctx;
 	
   fmpq_mpoly_ctx_init(ctx, 6, ORD_DEGREVLEX );
 
-  gens->nvars = *nr_vars = fmpq_mpoly_ctx_nvars(ctx);
+  gens->nvars = fmpq_mpoly_ctx_nvars(ctx);
   
-  char **vnames = (char **)malloc((*nr_vars) * sizeof(char *));
+  char **vnames = (char **)malloc((gens->nvars) * sizeof(char *));
 
   const char *ring_gen_names[] = {"w0", "w1", "w2", "w3", "l0", "l1" };
   for(int i=0; i < 6; i++ )
@@ -142,14 +129,17 @@ static inline void get_data_from_flint(char *fn, int32_t *nr_vars,
 	gens->cfs   = NULL;
   	gens->elim = 0;
 
-	gens->nvars = *nr_vars = fmpq_mpoly_ctx_nvars(ctx);
-	size_t n = gens->ngens = nr_gens = 6;//n;
+	gens->nvars = /* *nr_vars = */ fmpq_mpoly_ctx_nvars(ctx);
+	size_t n = gens->ngens = /* *nr_gens = */ 6;//n;
 	gens->nterms = 0;
 	gens->field_char = 0;
 	gens->vnames = NULL;
 	gens->change_var_order = -1;
 	gens->linear_form_base_coef = 0;
 	gens->rand_linear = 0;
+	gens->random_linear_form = malloc(sizeof(int32_t)*(gens->nvars));
+	gens->elim = 0; //elim_block_len;
+
 
 	gens->lens = (int32_t *)malloc((unsigned long)(gens->ngens) * sizeof(int32_t));
 
@@ -237,27 +227,13 @@ int main(int argc, char **argv){
     /**
        We get from files the requested data. 
     **/
-    //  int32_t mon_order   = 0;
-    int32_t nr_vars     = 0;
-    int32_t field_char  = 9001;
-    int32_t nr_gens     = 0;
     data_gens_ff_t *gens = allocate_data_gens();
 
     
-    get_data_from_flint(files->in_file, &nr_vars, &field_char, &nr_gens, gens );
+    get_data_from_flint(gens);
 #ifdef IODEBUG
     display_gens(stdout, gens);
 #endif
-
-    gens->rand_linear           = 0;
-    gens->random_linear_form = malloc(sizeof(int32_t)*(nr_vars));
-    gens->elim = elim_block_len;
-
-    if(0 < field_char && field_char < pow(2, 15) && la_option > 2){
-      fprintf(stderr, "Warning: characteristic is too low for choosing \nprobabilistic linear algebra\n");
-      fprintf(stderr, "\t linear algebra option set to 2\n");
-      la_option = 2;
-    }
     
     /* data structures for parametrization */
     param_t *param  = NULL;
