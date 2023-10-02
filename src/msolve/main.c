@@ -29,12 +29,12 @@
 #define IO_DEBUG 0
 
 
-void gens2msolve(data_gens_ff_t *gens, fmpq_mpoly_t *polys, size_t n, fmpq_mpoly_ctx_t ctx )
+data_gens_ff_t *gens2msolve(fmpq_mpoly_t *polys, size_t n, char **vnames, fmpq_mpoly_ctx_t ctx )
 {
 
 	//slong nr_terms = 0;
 
-	//data_gens_ff_t *gens = (data_gens_ff_t *)(malloc(sizeof(data_gens_ff_t)));
+	data_gens_ff_t *gens = (data_gens_ff_t *)(malloc(sizeof(data_gens_ff_t)));
 	gens->cfs   = NULL;
   	gens->elim = 0;
 
@@ -46,102 +46,18 @@ void gens2msolve(data_gens_ff_t *gens, fmpq_mpoly_t *polys, size_t n, fmpq_mpoly
 	gens->change_var_order = -1;
 	gens->linear_form_base_coef = 0;
 	gens->rand_linear = 0;
-
-	gens->lens = (int32_t *)malloc((unsigned long)(gens->ngens) * sizeof(int32_t));
-
-	ulong exps[gens->nvars];
-
-	for(size_t i=0; i < n; i++ )
-	{
-		gens->lens[i] = fmpq_mpoly_length(polys[i], ctx );
-		gens->nterms +=  gens->lens[i];
-	}
-
-	gens->exps = (int32_t *) malloc(gens->nterms * gens->nvars * sizeof(int32_t));
-	gens->mpz_cfs = (mpz_t **)(malloc(sizeof(mpz_t *) * 2 * gens->nterms));
-
-	for(int i=0; i < 2*gens->nterms; i++ )
-	{
-		gens->mpz_cfs[i] = (mpz_t *)malloc(sizeof(mpz_t));
-		mpz_init(*(gens->mpz_cfs[i]));
-	}
-
-	for(size_t i=0,p=0; i < n; i++ )
-	{
-		fmpq_t c;
-		fmpq_init(c);
-		for(size_t j=0; j < gens->lens[i]; j++, p++ )
-		{
-
-			fmpq_mpoly_get_term_coeff_fmpq(c, polys[i], j, ctx );
-			fmpq_get_mpz_frac(gens->mpz_cfs[2*p][0], gens->mpz_cfs[2*p+1][0], c );
-			fmpq_mpoly_get_term_exp_ui(exps/*gens->exps + gens->nvars*p*/, polys[i], j, ctx );
-
-			for(size_t k=0; k < gens->nvars; k++ )
-				(gens->exps + gens->nvars*p)[k] = (int32_t) exps[k];
-
-		}
-	}
-
-	//return gens;
-
-}
-
-//nr_gens is a pointer to the number of generators
-static inline data_gens_ff_t *get_data_from_flint(void){
-
-  fmpq_mpoly_ctx_t ctx;
-	
-  fmpq_mpoly_ctx_init(ctx, 6, ORD_DEGREVLEX );
-
-  data_gens_ff_t *gens = (data_gens_ff_t *)(malloc(sizeof(data_gens_ff_t)));
-
-  gens->nvars = fmpq_mpoly_ctx_nvars(ctx);
-  
-  char **vnames = (char **)malloc((gens->nvars) * sizeof(char *));
-
-  const char *ring_gen_names[] = {"w0", "w1", "w2", "w3", "l0", "l1" };
-  for(int i=0; i < 6; i++ )
-    vnames[i] = ring_gen_names[i];
-  	
-  fmpq_mpoly_t P[6];
-  
-  fmpq_mpoly_init(P[0], ctx );
-  fmpq_mpoly_init(P[1], ctx );
-  fmpq_mpoly_init(P[2], ctx );
-  fmpq_mpoly_init(P[3], ctx );
-  fmpq_mpoly_init(P[4], ctx );
-  fmpq_mpoly_init(P[5], ctx );
-  
-  
-  fmpq_mpoly_set_str_pretty(P[0], "8*w0*w2^2 + 16*w1*w2*w3 + 8*w0*w3^2 + 2*w0*l0 - 8*w3", ring_gen_names, ctx );
-  fmpq_mpoly_set_str_pretty(P[1], "8*w1*w2^2 + 16*w0*w2*w3 + 8*w1*w3^2 + 2*w1*l0 - 8*w2", ring_gen_names, ctx );
-  fmpq_mpoly_set_str_pretty(P[2], "8*w0^2*w2 + 8*w1^2*w2 + 16*w0*w1*w3 + 2*w2*l1 - 8*w1", ring_gen_names, ctx );
-  fmpq_mpoly_set_str_pretty(P[3], "16*w0*w1*w2 + 8*w0^2*w3 + 8*w1^2*w3 + 2*w3*l1 - 8*w0", ring_gen_names, ctx );
-  fmpq_mpoly_set_str_pretty(P[4], "w0^2 + w1^2 - 1", ring_gen_names, ctx );
-  fmpq_mpoly_set_str_pretty(P[5], "w2^2 + w3^2 - 1", ring_gen_names, ctx );
-  
-  //gens2msolve(gens, P, 6, ctx );
-  //
-  fmpq_mpoly_t *polys = P;
-
-	//slong nr_terms = 0;
-
-	//data_gens_ff_t *gens = (data_gens_ff_t *)(malloc(sizeof(data_gens_ff_t)));
-	gens->cfs   = NULL;
-  	gens->elim = 0;
-
-	gens->nvars = /* *nr_vars = */ fmpq_mpoly_ctx_nvars(ctx);
-	size_t n = gens->ngens = /* *nr_gens = */ 6;//n;
-	gens->nterms = 0;
-	gens->field_char = 0;
-	gens->vnames = NULL;
-	gens->change_var_order = -1;
-	gens->linear_form_base_coef = 0;
-	gens->rand_linear = 0;
 	gens->random_linear_form = malloc(sizeof(int32_t)*(gens->nvars));
-	gens->elim = 0; //elim_block_len;
+	gens->elim = 0;
 
+	gens->vnames = (char **)malloc( (gens->nvars) * (sizeof(char *)) );
+
+	for(size_t i=0; i < gens->nvars; i++ )
+	{
+		/*size_t s = strlen(vnames[i])+1;
+		gens->vnames[i] = (char *)malloc(s);
+		strcpy(gens->vnames[i], vnames[i] );*/
+		gens->vnames[i] = vnames[i];
+	}
 
 	gens->lens = (int32_t *)malloc((unsigned long)(gens->ngens) * sizeof(int32_t));
 
@@ -179,18 +95,13 @@ static inline data_gens_ff_t *get_data_from_flint(void){
 		}
 	}
 
-	//return gens;
+	return gens;
 
-
-  //
-  gens->vnames = vnames;
-
-  return gens;
- 
 }
 
 
-int main(int argc, char **argv){
+int msolve_from_fmpq_mpolys(fmpq_mpoly_t *polys, size_t n, char **vnames, fmpq_mpoly_ctx_t ctx )
+{
 
     /* timinigs */
     double st0 = cputime();
@@ -229,7 +140,7 @@ int main(int argc, char **argv){
     /**
        We get from files the requested data. 
     **/
-    data_gens_ff_t *gens = get_data_from_flint();
+    data_gens_ff_t *gens = gens2msolve(polys, n, vnames, ctx );//get_data_from_flint();
 #ifdef IODEBUG
     display_gens(stdout, gens);
 #endif
@@ -288,4 +199,40 @@ int main(int argc, char **argv){
     free(gens->random_linear_form);
     free(files);
     return ret;
+}
+
+int main()
+{
+	fmpq_mpoly_ctx_t ctx;
+	fmpq_mpoly_ctx_init(ctx, 6, ORD_DEGREVLEX );
+
+  data_gens_ff_t *gens = (data_gens_ff_t *)(malloc(sizeof(data_gens_ff_t)));
+
+  gens->nvars = fmpq_mpoly_ctx_nvars(ctx);
+  
+  char **vnames = (char **)malloc((gens->nvars) * sizeof(char *));
+
+  const char *ring_gen_names[] = {"w0", "w1", "w2", "w3", "l0", "l1" };
+  for(int i=0; i < 6; i++ )
+    vnames[i] = ring_gen_names[i];
+  	
+  fmpq_mpoly_t P[6];
+  
+  fmpq_mpoly_init(P[0], ctx );
+  fmpq_mpoly_init(P[1], ctx );
+  fmpq_mpoly_init(P[2], ctx );
+  fmpq_mpoly_init(P[3], ctx );
+  fmpq_mpoly_init(P[4], ctx );
+  fmpq_mpoly_init(P[5], ctx );
+  
+  
+  fmpq_mpoly_set_str_pretty(P[0], "8*w0*w2^2 + 16*w1*w2*w3 + 8*w0*w3^2 + 2*w0*l0 - 8*w3", ring_gen_names, ctx );
+  fmpq_mpoly_set_str_pretty(P[1], "8*w1*w2^2 + 16*w0*w2*w3 + 8*w1*w3^2 + 2*w1*l0 - 8*w2", ring_gen_names, ctx );
+  fmpq_mpoly_set_str_pretty(P[2], "8*w0^2*w2 + 8*w1^2*w2 + 16*w0*w1*w3 + 2*w2*l1 - 8*w1", ring_gen_names, ctx );
+  fmpq_mpoly_set_str_pretty(P[3], "16*w0*w1*w2 + 8*w0^2*w3 + 8*w1^2*w3 + 2*w3*l1 - 8*w0", ring_gen_names, ctx );
+  fmpq_mpoly_set_str_pretty(P[4], "w0^2 + w1^2 - 1", ring_gen_names, ctx );
+  fmpq_mpoly_set_str_pretty(P[5], "w2^2 + w3^2 - 1", ring_gen_names, ctx );
+
+  return msolve_from_fmpq_mpolys(P, 6, ring_gen_names, ctx );
+
 }
