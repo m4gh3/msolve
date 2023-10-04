@@ -21,6 +21,10 @@
 #ifndef MSOLVE_MSOLVE_H
 #define MSOLVE_MSOLVE_H
 
+//#include <gmp.h>
+//#include <flint/flint.h>
+#include <flint/fmpq_mpoly.h>
+
 #include "msolve-data.h"
 
 void display_gens(FILE *fh, data_gens_ff_t *gens);
@@ -186,4 +190,19 @@ void free_msolve_julia_result_data(
         const int64_t nr_sols,
         const int64_t field_char
         );
+
+data_gens_ff_t *gens2msolve(
+        fmpq_mpoly_t *polys,
+        size_t n,
+        char **vnames,
+        fmpq_mpoly_ctx_t ctx
+	);
+
+int msolve_from_fmpq_mpolys(
+        fmpq_mpoly_t *polys,
+        size_t n,
+        char **vnames,
+        fmpq_mpoly_ctx_t ctx
+	);
+
 #endif
