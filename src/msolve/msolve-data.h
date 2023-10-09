@@ -23,6 +23,7 @@
 
 #define _GNU_SOURCE
 #include "../neogb/data.h"
+#include "../usolve/data_usolve.h"
 #include <unistd.h>
 #include <string.h>
 #include <getopt.h>
@@ -214,4 +215,13 @@ typedef struct{
   files_gb *files;
 } msolveflags_struct;
 typedef msolveflags_struct msflags_t[1];
+
+typedef struct
+{
+	long nb_real_roots;
+	interval *real_roots;
+	real_point_t *real_pts;
+} msolve_re_solutions_struct;
+typedef msolve_re_solutions_struct msolve_re_solutions_t[1];
+
 #endif

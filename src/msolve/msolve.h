@@ -198,11 +198,14 @@ data_gens_ff_t *gens2msolve(
         fmpq_mpoly_ctx_t ctx
 	);
 
-int msolve_from_fmpq_mpolys(
+void msolve_from_fmpq_mpolys(
+	msolve_re_solutions_t sols,
         fmpq_mpoly_t *polys,
         size_t n,
         char **vnames,
         fmpq_mpoly_ctx_t ctx
 	);
+
+void msolve_solutions_clear(msolve_re_solutions_t);
 
 #endif

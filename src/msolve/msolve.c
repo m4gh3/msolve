@@ -5950,7 +5950,7 @@ data_gens_ff_t *gens2msolve(fmpq_mpoly_t *polys, size_t n, char **vnames, fmpq_m
 
 }
 
-int msolve_from_fmpq_mpolys(fmpq_mpoly_t *polys, size_t n, char **vnames, fmpq_mpoly_ctx_t ctx )
+void msolve_from_fmpq_mpolys(msolve_re_solutions_t sols, fmpq_mpoly_t *polys, size_t n, char **vnames, fmpq_mpoly_ctx_t ctx )
 {
 
     /* timinigs */
@@ -6018,14 +6018,14 @@ int msolve_from_fmpq_mpolys(fmpq_mpoly_t *polys, size_t n, char **vnames, fmpq_m
     mpz_param_clear(mpz_param);
 
 
-    if (nb_real_roots > 0) {
+    /*if (nb_real_roots > 0) {
         for(long i = 0; i < nb_real_roots; i++){
           real_point_clear(real_pts[i]);
           mpz_clear(real_roots[i].numer);
         }
         free(real_pts);
     }
-    free(real_roots);
+    free(real_roots);*/
 
     /* timings */
     if (info_level > 0) {
@@ -6048,5 +6048,25 @@ int msolve_from_fmpq_mpolys(fmpq_mpoly_t *polys, size_t n, char **vnames, fmpq_m
     free(gens->exps);
     free(gens->random_linear_form);
     free(files);
-    return ret;
+    
+    sols->nb_real_roots = nb_real_roots;
+    sols->real_roots = real_roots;
+    sols->real_pts = real_pts;
+
+    return;
+
+}
+
+void msolve_solutions_clear(msolve_re_solutions_t sols)
+{
+    if (sols->nb_real_roots > 0)
+    {
+        for(long i = 0; i < sols->nb_real_roots; i++)
+	{
+          real_point_clear(sols->real_pts[i]);
+          mpz_clear(sols->real_roots[i].numer);
+        }
+        free(sols->real_pts);
+    }
+    free(sols->real_roots);
 }

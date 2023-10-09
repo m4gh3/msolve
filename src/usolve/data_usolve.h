@@ -18,6 +18,10 @@
  * Christian Eder
  * Mohab Safey El Din */
 
+#pragma once
+#ifndef USOLVE_DATA_USOLVE_H
+#define USOLVE_DATA_USOLVE_H
+
 typedef struct
 {
   mpz_t numer;
@@ -64,3 +68,5 @@ typedef struct{
   unsigned int print_stats;
   int debug;
 } usolve_flags;
+
+#endif
