@@ -208,4 +208,6 @@ void msolve_from_fmpq_mpolys(
 
 void msolve_solutions_clear(msolve_re_solutions_t);
 
+double *get_sols_buffer(msolve_re_solutions_t);
+
 #endif
