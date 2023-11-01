@@ -350,6 +350,7 @@ struct md_t
     double reduce_gb_ctime;
     double tracer_ctime;
     double rht_ctime;
+    double nf_ctime;
 
     double round_rtime;
     double select_rtime;
@@ -361,6 +362,7 @@ struct md_t
     double reduce_gb_rtime;
     double tracer_rtime;
     double rht_rtime;
+    double nf_rtime;
 
     int64_t num_pairsred;
     int64_t num_gb_crit;
@@ -371,6 +373,9 @@ struct md_t
     int64_t num_rht;
     int64_t num_rowsred;
     int64_t num_zerored;
+    int64_t mat_max_nrows;
+    int64_t mat_max_ncols;
+    double  mat_max_density;
 
     int32_t ngens_input;
     int32_t ngens_invalid;
@@ -396,6 +401,7 @@ struct md_t
     int64_t nterms_basis;
     int32_t size_basis;
     int32_t ff_bits;
+    int32_t nf;
     int32_t use_signatures; /* module monomial ordering:
                                0 = off,
                                1=SCHREYER,
@@ -462,17 +468,6 @@ extern int (*hcm_cmp)(
         void *htp
         );
 
-extern int64_t (*export_julia_data)(
-        int32_t *bload,
-        int32_t **blen,
-        int32_t **bexp,
-        void **bcf,
-        void *(*mallocp) (size_t),
-        const bs_t * const bs,
-        const ht_t * const ht,
-        const uint32_t fc
-        );
-
 /* linear algebra routines */
 extern void (*sba_linear_algebra)(
         smat_t *smat,
@@ -483,6 +478,7 @@ extern void (*sba_linear_algebra)(
 
 extern void (*linear_algebra)(
         mat_t *mat,
+        const bs_t * const tbr,
         const bs_t * const bs,
         md_t *st
         );

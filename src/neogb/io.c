@@ -251,6 +251,8 @@ void sort_terms_qq(
 void import_input_data(
         bs_t *bs,
         md_t *st,
+        const int32_t start,
+        const int32_t stop,
         const int32_t *lens,
         const int32_t *exps,
         const void *vcfs,
@@ -271,18 +273,25 @@ void import_input_data(
 
     ht_t *ht = bs->ht;
 
-    int32_t off             = 0; /* offset in arrays */
-    const len_t ngens       = st->ngens;
-    const len_t ngens_input = st->ngens_input;
-    const len_t fc          = st->fc;
+    int32_t off       = 0; /* offset in arrays */
+    int32_t init_off  = 0;
+    const len_t fc    = st->fc;
+
+    len_t ngens = stop - start;
+
+    for (i = 0; i < start; ++i) {
+        init_off +=  lens[i];
+    }
 
     /* check basis size first */
-    check_enlarge_basis(bs, ngens_input, st);
+    /* check_enlarge_basis(bs, ngens_input, st); */
+    check_enlarge_basis(bs, ngens, st);
 
     /* import monomials */
     exp_t *e  = ht->ev[0]; /* use as temporary storage */
-    for (i = 0; i < ngens_input; ++i) {
-        if (invalid_gens[i] == 0) {
+    off = init_off;
+    for (i = start; i < stop; ++i) {
+        if (invalid_gens == NULL || invalid_gens[i] == 0) {
             while (lens[i] >= ht->esz-ht->eld) {
                 enlarge_hash_table(ht);
                 e  = ht->ev[0]; /* reset e if enlarging */
@@ -305,13 +314,13 @@ void import_input_data(
         off +=  lens[i];
     }
     /* import coefficients */
-    off =   0;
+    off = init_off;
     ctr = 0;
     switch (st->ff_bits) {
         case 8:
             cfs_ff  =   (int32_t *)vcfs;
-            for (i = 0; i < ngens_input; ++i) {
-                if (invalid_gens[i] == 0) {
+            for (i = start; i < stop; ++i) {
+                if (invalid_gens == NULL || invalid_gens[i] == 0) {
                     cf8 = (cf8_t *)malloc((unsigned long)(lens[i]) * sizeof(cf8_t));
                     bs->cf_8[ctr] = cf8;
 
@@ -328,8 +337,8 @@ void import_input_data(
             break;
         case 16:
             cfs_ff  =   (int32_t *)vcfs;
-            for (i = 0; i < ngens_input; ++i) {
-                if (invalid_gens[i] == 0) {
+            for (i = start; i < stop; ++i) {
+                if (invalid_gens == NULL || invalid_gens[i] == 0) {
                     cf16    = (cf16_t *)malloc((unsigned long)(lens[i]) * sizeof(cf16_t));
                     bs->cf_16[ctr] = cf16;
 
@@ -346,8 +355,8 @@ void import_input_data(
             break;
         case 32:
             cfs_ff  =   (int32_t *)vcfs;
-            for (i = 0; i < ngens_input; ++i) {
-                if (invalid_gens[i] == 0) {
+            for (i = start; i < stop; ++i) {
+                if (invalid_gens == NULL || invalid_gens[i] == 0) {
                     cf32    = (cf32_t *)malloc((unsigned long)(lens[i]) * sizeof(cf32_t));
                     bs->cf_32[ctr] = cf32;
 
@@ -366,8 +375,8 @@ void import_input_data(
             cfs_qq  =   (mpz_t **)vcfs;
             mpz_t prod_den, mul;
             mpz_inits(prod_den, mul, NULL);
-            for (i = 0; i < ngens_input; ++i) {
-                if (invalid_gens[i] == 0) {
+            for (i = start; i < stop; ++i) {
+                if (invalid_gens == NULL || invalid_gens[i] == 0) {
                     mpz_set_si(prod_den, 1);
 
                     for (j = off; j < off+lens[i]; ++j) {
@@ -395,6 +404,8 @@ void import_input_data(
         default:
             exit(1);
     }
+    /* maybe some input elements are invalid, so reset ngens here */
+    ngens = ctr;
             
     /* set total degree of input polynomials */
     deg_t deg = 0;
@@ -439,267 +450,6 @@ done:
     bs->ld  = st->ngens;
 }
 
-void import_input_data_nf_ff_32(
-        bs_t *tbr,
-        ht_t *ht,
-        md_t *st,
-        const int32_t start,
-        const int32_t stop,
-        const int32_t *lens,
-        const int32_t *exps,
-        const void *vcfs
-        )
-{
-    int32_t i, j, k;
-    cf32_t *cf    = NULL;
-    int64_t tmpcf = 0;
-    hm_t *hm      = NULL;
-
-    int32_t *cfs  = (int32_t *)vcfs;
-
-    int32_t off       = 0; /* offset in arrays */
-    const len_t fc    = st->fc;
-
-    for (i = 0; i < start; ++i) {
-        off +=  lens[i];
-    }
-
-    /* check basis size first */
-    check_enlarge_basis(tbr, stop-start, st);
-
-    exp_t *e  = ht->ev[0]; /* use as temporary storage */
-
-    for (i = start; i < stop; ++i) {
-        while (lens[i] >= ht->esz-ht->eld) {
-            enlarge_hash_table(ht);
-            e  = ht->ev[0]; /* reset e if enlarging */
-        }
-        hm  = (hm_t *)malloc(((unsigned long)lens[i]+OFFSET) * sizeof(hm_t));
-        cf  = (cf32_t *)malloc((unsigned long)(lens[i]) * sizeof(cf32_t));
-        tbr->hm[i-start]    = hm;
-        tbr->cf_32[i-start] = cf;
-
-        hm[COEFFS]  = i-start; /* link to matcf entry */
-        hm[PRELOOP] = (lens[i] % UNROLL); /* offset */
-        hm[LENGTH]  = lens[i]; /* length */
-
-        tbr->red[i-start] = 0;
-
-        for (j = off; j < off+lens[i]; ++j) {
-            set_exponent_vector(e, exps, j, ht, st);
-            hm[j-off+OFFSET]  =   insert_in_hash_table(e, ht);
-            /* make coefficient positive */
-            tmpcf             =   (int64_t)cfs[j];
-            tmpcf             +=  (tmpcf >> 63) & fc;
-            cf[j-off]         =   (cf32_t)tmpcf;
-        }
-        off +=  lens[i];
-        /* sort terms in polynomial w.r.t. given monomial order */
-        sort_terms_ff_32(&cf, &hm, ht);
-    }
-    /* set total degree of input polynomials */
-    deg_t deg = 0;
-    if (st->nev) {
-        for (i = 0; i < stop-start; ++i) {
-            hm  = tbr->hm[i];
-            deg = ht->hd[hm[OFFSET]].deg;
-            k   = hm[LENGTH] + OFFSET;
-            for (j = OFFSET+1; j < k; ++j) {
-                if (deg < ht->hd[hm[j]].deg) {
-                    deg = ht->hd[hm[j]].deg;
-                    st->homogeneous = 1;
-                }
-            }
-            tbr->hm[i][DEG]  = deg;
-        }
-    } else {
-        for (i = 0; i < stop-start; ++i) {
-            hm  = tbr->hm[i];
-            tbr->hm[i][DEG]  = ht->hd[hm[OFFSET]].deg;
-        }
-    }
-}
-
-void import_input_data_nf_ff_16(
-        bs_t *tbr,
-        ht_t *ht,
-        md_t *st,
-        const int32_t start,
-        const int32_t stop,
-        const int32_t *lens,
-        const int32_t *exps,
-        const void *vcfs
-        )
-{
-    int32_t i, j, k;
-    cf16_t *cf    = NULL;
-    int64_t tmpcf = 0;
-    hm_t *hm      = NULL;
-
-    int16_t *cfs  = (int16_t *)vcfs;
-
-    int32_t off       = 0; /* offset in arrays */
-    const len_t fc    = st->fc;
-
-    for (i = 0; i < start; ++i) {
-        off +=  lens[i];
-    }
-
-    /* check basis size first */
-    check_enlarge_basis(tbr, stop-start, st);
-
-    exp_t *e  = ht->ev[0]; /* use as temporary storage */
-
-    for (i = start; i < stop; ++i) {
-        while (lens[i] >= ht->esz-ht->eld) {
-            enlarge_hash_table(ht);
-            e  = ht->ev[0]; /* reset e if enlarging */
-        }
-        hm  = (hm_t *)malloc(((unsigned long)lens[i]+OFFSET) * sizeof(hm_t));
-        cf  = (cf16_t *)malloc((unsigned long)(lens[i]) * sizeof(cf16_t));
-        tbr->hm[i-start]    = hm;
-        tbr->cf_16[i-start] = cf;
-
-        hm[COEFFS]  = i-start; /* link to matcf entry */
-        hm[PRELOOP] = (lens[i] % UNROLL); /* offset */
-        hm[LENGTH]  = lens[i]; /* length */
-
-        tbr->red[i-start] = 0;
-
-        for (j = off; j < off+lens[i]; ++j) {
-            set_exponent_vector(e, exps, j, ht, st);
-            hm[j-off+OFFSET]  =   insert_in_hash_table(e, ht);
-            /* make coefficient positive */
-            tmpcf             =   (int64_t)cfs[j];
-            tmpcf             +=  (tmpcf >> 63) & fc;
-            cf[j-off]         =   (cf16_t)tmpcf;
-        }
-        off +=  lens[i];
-        /* sort terms in polynomial w.r.t. given monomial order */
-        sort_terms_ff_16(&cf, &hm, ht);
-    }
-    /* set total degree of input polynomials */
-    deg_t deg = 0;
-    if (st->nev) {
-        for (i = 0; i < stop-start; ++i) {
-            hm  = tbr->hm[i];
-            deg = ht->hd[hm[OFFSET]].deg;
-            k   = hm[LENGTH] + OFFSET;
-            for (j = OFFSET+1; j < k; ++j) {
-                if (deg < ht->hd[hm[j]].deg) {
-                    deg = ht->hd[hm[j]].deg;
-                    st->homogeneous = 1;
-                }
-            }
-            tbr->hm[i][DEG]  = deg;
-        }
-    } else {
-        for (i = 0; i < stop-start; ++i) {
-            hm  = tbr->hm[i];
-            tbr->hm[i][DEG]  = ht->hd[hm[OFFSET]].deg;
-        }
-    }
-}
-
-
-
-void import_input_data_nf_qq(
-        bs_t *bs,
-        ht_t *ht,
-        md_t *st,
-        const int32_t start,
-        const int32_t stop,
-        const int32_t *lens,
-        const int32_t *exps,
-        const void *vcfs
-        )
-{
-    int32_t i, j, k;
-    mpz_t *cf;
-    hm_t *hm;
-    mpz_t prod_den, mul;
-    mpz_inits(prod_den, mul, NULL);
-
-    /* these coefficients are numerator, denominator, numerator, denominator, ...
-     * i.e. the array has length 2*nterms */
-    mpz_t **cfs = (mpz_t **)vcfs;
-
-    int32_t off = 0; /* offset in arrays */
-
-    /* we want to get rid of denominators, i.e. we want to handle
-     * the coefficients as integers resp. mpz_t numbers. for this we
-     * first get the product of all denominators of a polynomial and
-     * then multiply with this product each term. the polynomials are
-    * then be made content free by another function. */
-    for (i = 0; i < start; ++i) {
-        off +=  lens[i];
-    }
-
-    /* check basis size first */
-    check_enlarge_basis(bs, stop-start, st);
-
-    exp_t *e  = ht->ev[0]; /* use as temporary storage */
-    for (i = start; i < stop; ++i) {
-        while (lens[i] >= ht->esz) {
-            enlarge_hash_table(ht);
-            e  = ht->ev[0]; /* reset e if enlarging */
-        }
-        mpz_set_si(prod_den, 1);
-
-        for (j = off; j < off+lens[i]; ++j) {
-            mpz_mul(prod_den, prod_den, *(cfs[2*j+1]));
-        }
-
-        hm  = (hm_t *)malloc(((unsigned long)lens[i]+OFFSET) * sizeof(hm_t));
-        cf  = (mpz_t *)malloc((unsigned long)(lens[i]) * sizeof(mpz_t));
-
-        bs->hm[i-start]     = hm;
-        bs->cf_qq[i-start]  = cf;
-
-        for (j = 0; j < lens[i]; ++j) {
-          mpz_init(cf[j]);
-        }
-        hm[COEFFS]  = i-start; /* link to matcf entry */
-        hm[PRELOOP] = (lens[i] % UNROLL); /* offset */
-        hm[LENGTH]  = lens[i]; /* length */
-
-        bs->red[i-start] = 0;
-
-        for (j = off; j < off+lens[i]; ++j) {
-            set_exponent_vector(e, exps, j, ht, st);
-            hm[j-off+OFFSET] = insert_in_hash_table(e, ht);
-            mpz_divexact(mul, prod_den, *(cfs[2*j+1]));
-            mpz_mul(cf[j-off], mul, *(cfs[2*j]));
-        }
-        /* mark initial generators, they have to be added to the basis first */
-        off +=  lens[i];
-        /* sort terms in polynomial w.r.t. given monomial order */
-        sort_terms_qq(&cf, &hm, ht);
-    }
-    /* set total degree of input polynomials */
-    deg_t deg = 0;
-    if (st->nev) {
-        for (i = 0; i < stop-start; ++i) {
-            hm  = bs->hm[i];
-            deg = ht->hd[hm[OFFSET]].deg;
-            k   = hm[LENGTH] + OFFSET;
-            for (j = OFFSET+1; j < k; ++j) {
-                if (deg < ht->hd[hm[j]].deg) {
-                    deg = ht->hd[hm[j]].deg;
-                    st->homogeneous = 1;
-                }
-            }
-            bs->hm[i][DEG]  = deg;
-        }
-    } else {
-        for (i = 0; i < stop-start; ++i) {
-            hm  = bs->hm[i];
-            bs->hm[i][DEG]  = ht->hd[hm[OFFSET]].deg;
-        }
-    }
-    mpz_clears(prod_den, mul, NULL);
-}
-
 /* return zero generator if all input generators are invalid */
 static void return_zero(
         int32_t *bload,
@@ -727,7 +477,7 @@ static void return_zero(
     }
 }
 
-static int64_t export_julia_data_ff_8(
+static int64_t export_data(
         int32_t *bload,
         int32_t **blen,
         int32_t **bexp,
@@ -735,11 +485,14 @@ static int64_t export_julia_data_ff_8(
         void *(*mallocp) (size_t),
         const bs_t * const bs,
         const ht_t * const ht,
-        const uint32_t fc
+        const md_t * const md
         )
 {
     len_t i, j, k;
     hm_t *dt;
+
+    void *cf;
+    mpz_t *tmp_cf_q;
 
     const len_t nv  = ht->nv;
     const len_t evl = ht->evl;
@@ -750,7 +503,11 @@ static int64_t export_julia_data_ff_8(
     int64_t nelts   = 0; /* # elemnts in basis */
 
     for (i = 0; i < lml; ++i) {
+        if (bs->hm[bs->lmps[i]] != NULL) {
         nterms +=  (int64_t)bs->hm[bs->lmps[i]][LENGTH];
+        } else {
+            nterms++; /* allocate one term for 0 polynomial */
+        }
     }
     nelts = lml;
 
@@ -763,233 +520,60 @@ static int64_t export_julia_data_ff_8(
             (unsigned long)(nelts) * sizeof(int32_t));
     int32_t *exp  = (int32_t *)(*mallocp)(
             (unsigned long)(nterms) * (unsigned long)(nv) * sizeof(int32_t));
-    int32_t *cf   = (int32_t *)(*mallocp)(
-            (unsigned long)(nterms) * sizeof(int32_t));
-
-    /* counters for lengths, exponents and coefficients */
-    int64_t cl = 0, ce = 0, cc = 0;
-
-    for (i = 0; i < lml; ++i) {
-        const bl_t bi = bs->lmps[i];
-        len[cl] = bs->hm[bi][LENGTH];
-        for (j = 0; j < len[cl]; ++j) {
-            (cf+cc)[j] = (int32_t)bs->cf_8[bs->hm[bi][COEFFS]][j];
-        }
-        dt  = bs->hm[bi] + OFFSET;
-        for (j = 0; j < len[cl]; ++j) {
-            for (k = 1; k < ebl; ++k) {
-                exp[ce++] = (int32_t)ht->ev[dt[j]][k];
-            }
-            for (k = ebl+1; k < evl; ++k) {
-                exp[ce++] = (int32_t)ht->ev[dt[j]][k];
-            }
-        }
-        cc  +=  len[cl];
-        cl++;
-    }
-
-    *bload  = (int32_t)nelts;
-    *blen   = len;
-    *bexp   = exp;
-    *bcf    = (void *)cf;
-
-    return nterms;
-}
-
-static int64_t export_julia_data_ff_16(
-        int32_t *bload,
-        int32_t **blen,
-        int32_t **bexp,
-        void **bcf,
-        void *(*mallocp) (size_t),
-        const bs_t * const bs,
-        const ht_t * const ht,
-        const uint32_t fc
-        )
-{
-    len_t i, j, k;
-    hm_t *dt;
-
-    const len_t nv  = ht->nv;
-    const len_t evl = ht->evl;
-    const len_t ebl = ht->ebl;
-    const len_t lml = bs->lml;
-
-    int64_t nterms  = 0; /* # of terms in basis */
-    int64_t nelts   = 0; /* # elemnts in basis */
-
-    for (i = 0; i < lml; ++i) {
-        nterms +=  (int64_t)bs->hm[bs->lmps[i]][LENGTH];
-    }
-    nelts = lml;
-
-    if (nelts > (int64_t)(pow(2, 31))) {
-        printf("Basis has more than 2^31 elements, cannot store it.\n");
-        return 0;
-    }
-
-    int32_t *len  = (int32_t *)(*mallocp)(
-            (unsigned long)(nelts) * sizeof(int32_t));
-    int32_t *exp  = (int32_t *)(*mallocp)(
-            (unsigned long)(nterms) * (unsigned long)(nv) * sizeof(int32_t));
-    int32_t *cf   = (int32_t *)(*mallocp)(
-            (unsigned long)(nterms) * sizeof(int32_t));
-
-    /* counters for lengths, exponents and coefficients */
-    int64_t cl = 0, ce = 0, cc = 0;
-
-    for (i = 0; i < lml; ++i) {
-        const bl_t bi = bs->lmps[i];
-        len[cl] = bs->hm[bi][LENGTH];
-        for (j = 0; j < len[cl]; ++j) {
-            (cf+cc)[j] = (int32_t)bs->cf_16[bs->hm[bi][COEFFS]][j];
-        }
-        dt  = bs->hm[bi] + OFFSET;
-        for (j = 0; j < len[cl]; ++j) {
-            for (k = 1; k < ebl; ++k) {
-                exp[ce++] = (int32_t)ht->ev[dt[j]][k];
-            }
-            for (k = ebl+1; k < evl; ++k) {
-                exp[ce++] = (int32_t)ht->ev[dt[j]][k];
-            }
-        }
-        cc  +=  len[cl];
-        cl++;
-    }
-
-    *bload  = (int32_t)nelts;
-    *blen   = len;
-    *bexp   = exp;
-    *bcf    = (void *)cf;
-
-    return nterms;
-}
-
-static int64_t export_julia_data_ff_32(
-        int32_t *bload,
-        int32_t **blen,
-        int32_t **bexp,
-        void **bcf,
-        void *(*mallocp) (size_t),
-        const bs_t * const bs,
-        const ht_t * const ht,
-        const uint32_t fc
-        )
-{
-    len_t i, j, k;
-    hm_t *dt;
-
-    const len_t nv  = ht->nv;
-    const len_t evl = ht->evl;
-    const len_t ebl = ht->ebl;
-    const len_t lml = bs->lml;
-
-    int64_t nterms  = 0; /* # of terms in basis */
-    int64_t nelts   = 0; /* # elemnts in basis */
-
-    for (i = 0; i < lml; ++i) {
-        nterms +=  (int64_t)bs->hm[bs->lmps[i]][LENGTH];
-    }
-    nelts = lml;
-
-    if (nelts > (int64_t)(pow(2, 31))) {
-        printf("Basis has more than 2^31 elements, cannot store it.\n");
-        return 0;
-    }
-
-    int32_t *len  = (int32_t *)(*mallocp)(
-            (unsigned long)(nelts) * sizeof(int32_t));
-    int32_t *exp  = (int32_t *)(*mallocp)(
-            (unsigned long)(nterms) * (unsigned long)(nv) * sizeof(int32_t));
-    int32_t *cf   = (int32_t *)(*mallocp)(
-            (unsigned long)(nterms) * sizeof(int32_t));
-
-    /* counters for lengths, exponents and coefficients */
-    int64_t cl = 0, ce = 0, cc = 0, ctmp  = 0;;
-
-    for (i = 0; i < lml; ++i) {
-        const bl_t bi = bs->lmps[i];
-        len[cl] = bs->hm[bi][LENGTH];
-        /* we may need to make coefficients negative since we
-         * output int32_t but cf32_t is uint_32. */
-        for (j = 0; j < len[cl]; ++j) {
-            ctmp  = (int64_t)bs->cf_32[bs->hm[bi][COEFFS]][j];
-            ctmp  -=  (ctmp >> 31) & fc;
-            (cf+cc)[j] = (int32_t)ctmp;
-        }
-        memcpy(cf+cc, bs->cf_32[bs->hm[bi][COEFFS]],
-                (unsigned long)(len[cl]) * sizeof(cf32_t));
-
-        dt  = bs->hm[bi] + OFFSET;
-        for (j = 0; j < len[cl]; ++j) {
-            for (k = 1; k < ebl; ++k) {
-                exp[ce++] = (int32_t)ht->ev[dt[j]][k];
-            }
-            for (k = ebl+1; k < evl; ++k) {
-                exp[ce++] = (int32_t)ht->ev[dt[j]][k];
-            }
-        }
-        cc  +=  len[cl];
-        cl++;
-    }
-
-    *bload  = (int32_t)nelts;
-    *blen   = len;
-    *bexp   = exp;
-    *bcf    = (void *)cf;
-
-    return nterms;
-}
-
-static int64_t export_julia_data_qq(
-        int32_t *bload,
-        int32_t **blen,
-        int32_t **bexp,
-        void **bcf,
-        void *(*mallocp) (size_t),
-        const bs_t * const bs,
-        const ht_t * const ht,
-        const uint32_t fc
-        )
-{
-    len_t i, j, k;
-    hm_t *dt;
-
-    const len_t nv  = ht->nv;
-    const len_t evl = ht->evl;
-    const len_t ebl = ht->ebl;
-    const len_t lml = bs->lml;
-
-    int64_t nterms  = 0; /* # of terms in basis */
-    int64_t nelts   = 0; /* # elemnts in basis */
-
-    for (i = 0; i < lml; ++i) {
-        nterms +=  (int64_t)bs->hm[bs->lmps[i]][LENGTH];
-    }
-    nelts = lml;
-
-    if (nelts > (int64_t)(pow(2, 31))) {
-        printf("Basis has more than 2^31 elements, cannot store it.\n");
-        return 0;
-    }
-
-    int32_t *len  = (int32_t *)(*mallocp)(
-            (unsigned long)(nelts) * sizeof(int32_t));
-    int32_t *exp  = (int32_t *)(*mallocp)(
-            (unsigned long)(nterms) * (unsigned long)(nv) * sizeof(int32_t));
-    mpz_t *cf     = (mpz_t *)(*mallocp)(
+    if (md->ff_bits == 0) {
+        cf = (mpz_t *)(*mallocp)(
             (unsigned long)(nterms) * sizeof(mpz_t));
+    } else {
+        cf = (int32_t *)(*mallocp)(
+            (unsigned long)(nterms) * sizeof(int32_t));
+    }
 
     /* counters for lengths, exponents and coefficients */
     int64_t cl = 0, ce = 0, cc = 0;
+
     for (i = 0; i < lml; ++i) {
         const bl_t bi = bs->lmps[i];
-        len[cl] = bs->hm[bi][LENGTH];
-        mpz_t *coeffs =  bs->cf_qq[bs->hm[bi][COEFFS]];
-        for (j = 0; j < len[cl]; ++j) {
-            mpz_init_set((cf+cc)[j], coeffs[j]);
+        /* polynomial is zero */
+        if (bs->hm[bi] == NULL) {
+            if (md->ff_bits == 0) {
+                mpz_init(((mpz_t *)cf+cc)[0]);
+            } else {
+                ((int32_t *)cf+cc)[0] = (int32_t)0;
+            }
+            for (k = 1; k < evl; ++k) {
+                exp[ce++] = (int32_t)0;
+            }
+            cc += 1;
+            cl++;
+            continue;
         }
-
+        /* polynomial is nonzero */
+        len[cl] = bs->hm[bi][LENGTH];
+        switch (md->ff_bits) {
+            case 8:
+                for (j = 0; j < len[cl]; ++j) {
+                    ((int32_t *)cf+cc)[j] = (int32_t)bs->cf_8[bs->hm[bi][COEFFS]][j];
+                }
+                break;
+            case 16:
+                for (j = 0; j < len[cl]; ++j) {
+                    ((int32_t *)cf+cc)[j] = (int32_t)bs->cf_16[bs->hm[bi][COEFFS]][j];
+                }
+                break;
+            case 32:
+                for (j = 0; j < len[cl]; ++j) {
+                    ((int32_t *)cf+cc)[j] = (int32_t)bs->cf_32[bs->hm[bi][COEFFS]][j];
+                }
+                break;
+            case 0:
+                tmp_cf_q =  bs->cf_qq[bs->hm[bi][COEFFS]];
+                for (j = 0; j < len[cl]; ++j) {
+                    mpz_init_set(((mpz_t *)cf+cc)[j], tmp_cf_q[j]);
+                }
+                break;
+            default:
+                exit(1);
+        }
         dt  = bs->hm[bi] + OFFSET;
         for (j = 0; j < len[cl]; ++j) {
             for (k = 1; k < ebl; ++k) {
@@ -999,7 +583,7 @@ static int64_t export_julia_data_qq(
                 exp[ce++] = (int32_t)ht->ev[dt[j]][k];
             }
         }
-        cc  += len[cl];
+        cc  +=  len[cl];
         cl++;
     }
 
@@ -1137,7 +721,7 @@ int validate_input_data(
     }
 
     *nr_gensp   -=  ctr;
-    printf("ngens %d ] %d ctr\n", *nr_gensp, ctr);
+
     /* recheck number of generators, if the input was only (0) then
      * no more generators are left over. */
     if (*nr_gensp < 1) {
@@ -1314,7 +898,6 @@ void set_function_pointers(
           linear_algebra  = exact_sparse_linear_algebra_qq;
       }
       interreduce_matrix_rows = interreduce_matrix_rows_qq;
-      export_julia_data       = export_julia_data_qq;
       break;
 
     case 8:
@@ -1338,7 +921,6 @@ void set_function_pointers(
           linear_algebra  = exact_sparse_linear_algebra_ff_8;
       }
       interreduce_matrix_rows     = interreduce_matrix_rows_ff_8;
-      export_julia_data           = export_julia_data_ff_8;
       normalize_initial_basis     = normalize_initial_basis_ff_8;
       break;
 
@@ -1363,7 +945,6 @@ void set_function_pointers(
           linear_algebra  = exact_sparse_linear_algebra_ff_16;
       }
       interreduce_matrix_rows     = interreduce_matrix_rows_ff_16;
-      export_julia_data           = export_julia_data_ff_16;
       normalize_initial_basis     = normalize_initial_basis_ff_16;
       break;
 
@@ -1388,7 +969,6 @@ void set_function_pointers(
           linear_algebra  = exact_sparse_linear_algebra_ff_32;
       }
       interreduce_matrix_rows     = interreduce_matrix_rows_ff_32;
-      export_julia_data           = export_julia_data_ff_32;
       normalize_initial_basis     = normalize_initial_basis_ff_32;
       sba_linear_algebra          = sba_linear_algebra_ff_32;
 
@@ -1448,7 +1028,6 @@ void set_function_pointers(
           linear_algebra  = exact_sparse_linear_algebra_ff_32;
       }
       interreduce_matrix_rows     = interreduce_matrix_rows_ff_32;
-      export_julia_data           = export_julia_data_ff_32;
       normalize_initial_basis     = normalize_initial_basis_ff_32;
 
       /* if coeffs are smaller than 17 bit we can optimize reductions */
@@ -1531,7 +1110,6 @@ static inline void reset_function_pointers(
 {
     if (prime < pow(2,8)) {
         interreduce_matrix_rows     = interreduce_matrix_rows_ff_8;
-        export_julia_data           = export_julia_data_ff_8;
         normalize_initial_basis     = normalize_initial_basis_ff_8;
         switch (laopt) {
           case 1:
@@ -1555,7 +1133,6 @@ static inline void reset_function_pointers(
     } else {
         if (prime < pow(2,16)) {
             interreduce_matrix_rows     = interreduce_matrix_rows_ff_16;
-            export_julia_data           = export_julia_data_ff_16;
             normalize_initial_basis     = normalize_initial_basis_ff_16;
             switch (laopt) {
               case 1:
@@ -1578,7 +1155,6 @@ static inline void reset_function_pointers(
             }
         } else {
             interreduce_matrix_rows     = interreduce_matrix_rows_ff_32;
-            export_julia_data           = export_julia_data_ff_32;
             normalize_initial_basis     = normalize_initial_basis_ff_32;
             switch (laopt) {
               case 1:
@@ -1639,20 +1215,17 @@ static inline void reset_trace_function_pointers(
 {
     if (prime < pow(2,8)) {
         interreduce_matrix_rows     = interreduce_matrix_rows_ff_8;
-        export_julia_data           = export_julia_data_ff_8;
         normalize_initial_basis     = normalize_initial_basis_ff_8;
         application_linear_algebra  = exact_application_sparse_linear_algebra_ff_8;
         trace_linear_algebra        = exact_trace_sparse_linear_algebra_ff_8;
     } else {
         if (prime < pow(2,16)) {
             interreduce_matrix_rows     = interreduce_matrix_rows_ff_16;
-            export_julia_data           = export_julia_data_ff_16;
             normalize_initial_basis     = normalize_initial_basis_ff_16;
             application_linear_algebra  = exact_application_sparse_linear_algebra_ff_16;
             trace_linear_algebra        = exact_trace_sparse_linear_algebra_ff_16;
         } else {
             interreduce_matrix_rows     = interreduce_matrix_rows_ff_32;
-            export_julia_data           = export_julia_data_ff_32;
             normalize_initial_basis     = normalize_initial_basis_ff_32;
             application_linear_algebra  = exact_application_sparse_linear_algebra_ff_32;
             trace_linear_algebra        = exact_trace_sparse_linear_algebra_ff_32;

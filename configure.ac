@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT([msolve], [0.5.0], [ederc@mathematik.uni-kl.de,mohab.safey@lip6.fr])
+AC_INIT([msolve], [0.6.0], [ederc@mathematik.uni-kl.de,mohab.safey@lip6.fr])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign silent-rules subdir-objects color-tests parallel-tests])
 AC_CONFIG_SRCDIR([config.h.in])
 AC_CONFIG_MACRO_DIR([m4])
@@ -142,6 +142,10 @@ AC_CONFIG_LINKS([
  output_files/reals_dim0.res:output_files/reals_dim0.res
  output_files/reals_dim0.p256.res:output_files/reals_dim0.p256.res
  test/diff/diff_reals_dim0.sh:test/diff/diff_reals_dim0.sh
+ input_files/reals_dim0-swapvar.ms:input_files/reals_dim0-swapvar.ms
+ output_files/reals_dim0-swapvar.res:output_files/reals_dim0-swapvar.res
+ output_files/reals_dim0-swapvar.p256.res:output_files/reals_dim0-swapvar.p256.res
+ test/diff/diff_reals_dim0-swapvar.sh:test/diff/diff_reals_dim0-swapvar.sh
  input_files/bug-empty-tracer.ms:input_files/bug-empty-tracer.ms
  output_files/bug-empty-tracer.res:output_files/bug-empty-tracer.res
  test/diff/diff_bug_empty_tracer.sh:test/diff/diff_bug_empty_tracer.sh
@@ -160,5 +164,14 @@ AC_CONFIG_LINKS([
  input_files/input-overflow-16.ms:input_files/input-overflow-16.ms
  output_files/input-overflow-16.res:output_files/input-overflow-16.res
  test/diff/diff_input-overflow-16.sh:test/diff/diff_input-overflow-16.sh
+ input_files/nf-8.ms:input_files/nf-8.ms
+ output_files/nf-8.res:output_files/nf-8.res
+ test/diff/diff_nf_8.sh:test/diff/diff_nf_8.sh
+ input_files/nf-16.ms:input_files/nf-16.ms
+ output_files/nf-16.res:output_files/nf-16.res
+ test/diff/diff_nf_16.sh:test/diff/diff_nf_16.sh
+ input_files/nf-31.ms:input_files/nf-31.ms
+ output_files/nf-31.res:output_files/nf-31.res
+ test/diff/diff_nf_31.sh:test/diff/diff_nf_31.sh
 ])
 AC_OUTPUT

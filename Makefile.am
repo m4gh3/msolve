@@ -30,13 +30,17 @@ checkdiff               = test/diff/diff_cp_d_3_n_4_p_2.sh \
 			  test/diff/diff_one-qq.sh \
 			  test/diff/diff_radical_shape-31.sh \
 			  test/diff/diff_radical_shape-qq.sh \
-			  test/diff/diff_reals_dim0.sh \
+				test/diff/diff_reals_dim0.sh \
+				test/diff/diff_reals_dim0-swapvar.sh \
 			  test/diff/diff_bug_empty_tracer.sh \
 			  test/diff/diff_bug_2nd_prime_bad.sh \
 			  test/diff/diff_bug_68.sh \
 			  test/diff/diff_mq_2_1.sh \
 			  test/diff/diff_xy-qq.sh \
-			  test/diff/diff_input-overflow-16.sh
+			  test/diff/diff_input-overflow-16.sh \
+			  test/diff/diff_nf_8.sh \
+			  test/diff/diff_nf_16.sh \
+			  test/diff/diff_nf_31.sh
 
 # dist_check_DATA         = test/input_files
 neogb_io_SOURCES 	= test/neogb/io/validate_input_data.c

@@ -153,6 +153,7 @@ static inline int32_t display_monomial_full(FILE *file, const int nv,
   }
   return b;
 }
+
 static void print_msolve_polynomials_ff(
         FILE *file,
         const bi_t from,
@@ -161,7 +162,8 @@ static void print_msolve_polynomials_ff(
         const ht_t * const ht,
         const md_t *st,
         char **vnames,
-        const int lead_ideal_only
+        const int lead_ideal_only,
+        const int is_nf
         )
 {
     len_t i, j, k, idx;
@@ -174,7 +176,7 @@ static void print_msolve_polynomials_ff(
     const len_t evl = ht->evl;
 
     /* state context if full basis is printed */
-    if (from == 0 && to == bs->lml) {
+    if (is_nf == 0 && from == 0 && to == bs->lml) {
         if (lead_ideal_only != 0) {
             fprintf(file, "#Lead ideal for input in characteristic ");
         } else {
@@ -189,7 +191,6 @@ static void print_msolve_polynomials_ff(
         fprintf(file, "#w.r.t. grevlex monomial ordering\n");
         fprintf(file, "#consisting of %u elements:\n", bs->lml);
     }
-
 
     int *evi    =   (int *)malloc((unsigned long)ht->nv * sizeof(int));
     if (ebl == 0) {
@@ -296,6 +297,31 @@ static void print_msolve_polynomials_ff(
     free(evi);
 }
 
+static void print_ff_nf_data(
+        const char *fn,
+        const char *mode,
+        const bi_t from,
+        const bi_t to,
+        const bs_t *bs,
+        const ht_t *ht,
+        const md_t *st,
+        const data_gens_ff_t *gens,
+        const int32_t print_gb)
+{
+    if (print_gb > 0) {
+        if(fn != NULL){
+            FILE *ofile = fopen(fn, mode);
+            print_msolve_polynomials_ff(ofile, from, to, bs, ht,
+                    st, gens->vnames, 2-print_gb, 1);
+            fclose(ofile);
+        }
+        else{
+            print_msolve_polynomials_ff(stdout, from, to, bs, ht,
+                    st, gens->vnames, 2-print_gb, 1);
+        }
+    }
+}
+
 static void print_ff_basis_data(
         const char *fn,
         const char *mode,
@@ -309,12 +335,12 @@ static void print_ff_basis_data(
         if(fn != NULL){
             FILE *ofile = fopen(fn, mode);
             print_msolve_polynomials_ff(ofile, 0, bs->lml, bs, ht,
-                    st, gens->vnames, 2-print_gb);
+                    st, gens->vnames, 2-print_gb, 0);
             fclose(ofile);
         }
         else{
             print_msolve_polynomials_ff(stdout, 0, bs->lml, bs, ht,
-                    st, gens->vnames, 2-print_gb);
+                    st, gens->vnames, 2-print_gb, 0);
         }
     }
 }

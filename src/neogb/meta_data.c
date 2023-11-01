@@ -237,7 +237,11 @@ static void get_final_statistics(
     int64_t nterms = 0;
     md->size_basis = bs->lml;
     for (i = 0; i < bs->lml; ++i) {
-        nterms += bs->hm[bs->lmps[i]][LENGTH];
+        if (bs->hm[bs->lmps[i]] == NULL) {
+            nterms++;
+        } else {
+            nterms += bs->hm[bs->lmps[i]][LENGTH];
+        }
     }
     md->nterms_basis = nterms;
 
@@ -303,6 +307,8 @@ void get_and_print_final_statistics(
         fprintf(file, "#redundant elements      %10lu\n", (unsigned long)st->num_redundant);
         fprintf(file, "#rows reduced      %16lu\n", (unsigned long)st->num_rowsred);
         fprintf(file, "#zero reductions   %16lu\n", (unsigned long)st->num_zerored);
+        fprintf(file, "max. matrix data   %16ld x %ld (%.3f%%)\n",
+                (long)st->mat_max_nrows, (long)st->mat_max_ncols, st->mat_max_density);
         fprintf(file, "max. symbolic hash table size  2^%d\n",
                 (int32_t)(ceil(log((double)st->max_sht_size)/log(2))));
         fprintf(file, "max. basis hash table size     2^%d\n",

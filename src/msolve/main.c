@@ -99,6 +99,13 @@ static inline void display_help(char *str){
   fprintf(stdout, "         44 - sparse linearization (probabilistic)\n");
   fprintf(stdout, "-m MPR   Maximal number of pairs used per matrix.\n");
   fprintf(stdout, "         Default: 0 (unlimited).\n");
+  fprintf(stdout, "-n NF    Given n input generators compute normal form of the last NF\n");
+  fprintf(stdout, "         elements of the input w.r.t. a degree reverse lexicographical\n");
+  fprintf(stdout, "         Gröbner basis of the irst (n - NF) input elements.\n");
+  fprintf(stdout, "         At the moment this only works for prime field computations.\n");
+  fprintf(stdout, "         Combining this option with the \"-i\" option assumes that the\n");
+  fprintf(stdout, "         first (n - NF) elements generate already a degree reverse\n");
+  fprintf(stdout, "         lexicographical Gröbner basis.\n");
   fprintf(stdout, "-p PRE   Precision of the real root isolation.\n");
   fprintf(stdout, "         Default is 32.\n");
   fprintf(stdout, "-P PAR   Get also rational parametrization of solution set.\n");
@@ -154,7 +161,7 @@ static void getoptions(
   char *out_fname = NULL;
   char *bin_out_fname = NULL;
   opterr = 1;
-  char options[] = "hf:F:v:l:t:e:o:O:u:i:I:p:P:q:g:c:s:SCr:R:m:M:n:";
+  char options[] = "hf:F:v:l:t:e:o:O:u:iI:p:P:q:g:c:s:SCr:R:m:M:n:";
   while((opt = getopt(argc, argv, options)) != -1) {
     switch(opt) {
     case 'h':
@@ -191,13 +198,7 @@ static void getoptions(
       *refine = 1;
       break;
     case 'i':
-      *is_gb = strtol(optarg, NULL, 10);
-      if (*is_gb < 0) {
-          *is_gb = 0;
-      }
-      if (*is_gb > 1) {
-          *is_gb = 1;
-      }
+      *is_gb = 1;
       break;
     case 'I':
       *isolate = strtol(optarg, NULL, 10);
@@ -425,7 +426,7 @@ int main(int argc, char **argv){
     gens->random_linear_form = malloc(sizeof(int32_t)*(nr_vars));
     gens->elim = elim_block_len;
 
-    if(0 < field_char && field_char < pow(2, 15) && la_option > 2){
+    if(0 < field_char && field_char < pow(2, 15) && la_option > 2 && info_level){
       fprintf(stderr, "Warning: characteristic is too low for choosing \nprobabilistic linear algebra\n");
       fprintf(stderr, "\t linear algebra option set to 2\n");
       la_option = 2;
