@@ -147,7 +147,7 @@ static inline void mpz_param_out_str(FILE *file, const data_gens_ff_t *gens,
       }
     }
     for(int i = 0; i < param->nvars - 1; i++){
-      fprintf(file, "%d,", gens->random_linear_form[i]);
+      fprintf(file, "%d", gens->random_linear_form[i]);
       if(gens->field_char == 0){
         fprintf(file, "/%d", sum);
       }
@@ -3011,7 +3011,7 @@ int msolve_trace_qq(mpz_param_t mpz_param,
   int nbdoit = 1;
   int doit = 1;
   int prdone = 0;
-  int lpow2 = 0;
+  int lpow2 = 1;
   int clog = 0;
   int br = 0;
 
@@ -4913,10 +4913,19 @@ restart:
             if(gens->change_var_order >= 0){
               undo_variable_order_change(gens);
             }
-            if (add_random_linear_form_to_input_system(gens, info_level)) {
-              goto restart;
-            }
-          }
+	    if (genericity_handling == 2) {
+	      if (add_random_linear_form_to_input_system(gens, info_level)) {
+		goto restart;
+	      }
+	    }
+	    fprintf(stderr, "\n=====> Computation failed <=====\n");
+            fprintf(stderr, "Try to add a random linear form with ");
+            fprintf(stderr, "a new variable\n");
+            fprintf(stderr, "(smallest w.r.t. DRL) to the input system. ");
+            fprintf(stderr, "This will\n");
+            fprintf(stderr, "be done automatically if you run msolve with option\n");
+            fprintf(stderr, "\"-c2\" which is the default.\n");
+	  } 
         }
 	else {
           /* normal_form is 1 */
@@ -4999,7 +5008,7 @@ restart:
             }
             /* print all reduced elements in tbr, first normal_form ones
              * are the input elements */
-            print_ff_nf_data(files->out_file, "a", 0, normal_form, tbr, bht, st, gens, 1);
+            print_ff_nf_data(files->out_file, "a", 0, normal_form, tbr, bht, st, gens, 2);
             if (normal_form_matrix > 0) {
                 /* sht and hcm will store the union of the support
                  * of all normal forms in tbr. */
@@ -5575,9 +5584,18 @@ restart:
                 if(gens->change_var_order >= 0){
                   undo_variable_order_change(gens);
                 }
-                if (add_random_linear_form_to_input_system(gens, info_level)) {
-                    goto restart;
-                }
+		if (genericity_handling == 2) {
+		  if (add_random_linear_form_to_input_system(gens, info_level)) {
+		    goto restart;
+		  }
+		}
+		fprintf(stderr, "\n=====> Computation failed <=====\n");
+		fprintf(stderr, "Try to add a random linear form with ");
+		fprintf(stderr, "a new variable\n");
+		fprintf(stderr, "(smallest w.r.t. DRL) to the input system. ");
+		fprintf(stderr, "This will\n");
+		fprintf(stderr, "be done automatically if you run msolve with option\n");
+		fprintf(stderr, "\"-c2\" which is the default.\n");
             }
         }
 

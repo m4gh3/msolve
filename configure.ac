@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT([msolve], [0.6.0], [ederc@mathematik.uni-kl.de,mohab.safey@lip6.fr])
+AC_INIT([msolve], [0.6.1], [ederc@mathematik.uni-kl.de,mohab.safey@lip6.fr])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign silent-rules subdir-objects color-tests parallel-tests])
 AC_CONFIG_SRCDIR([config.h.in])
 AC_CONFIG_MACRO_DIR([m4])
@@ -17,11 +17,21 @@ AC_PROG_CC
 
 # Checks for libraries.
 # CAUTION: Order matters for static binary building.
-AC_CHECK_LIB([m], [main], , [AC_MSG_ERROR([Math library not found])])
-AC_CHECK_LIB(gmp, __gmpz_init, , [AC_MSG_ERROR([GNU MP not found, see https://gmplib.org/])])
-AC_CHECK_LIB([mpfr], [mpfr_init], , [AC_MSG_ERROR([MPFR not found])])
-AC_CHECK_LIB([flint], [fmpz_add_ui], , [AC_MSG_ERROR([FLINT not found])])
-# AC_CHECK_LIB([pthread], [posix_spawn])
+AC_SEARCH_LIBS([atan2],[m],
+    [],
+    [AC_MSG_ERROR(["The C math library was not found!"])])
+
+AC_SEARCH_LIBS([__gmpz_init],[gmp],
+    [],
+    [AC_MSG_ERROR(["GMP library was not found."])])
+
+AC_SEARCH_LIBS([mpfr_init],[mpfr],
+    [],
+    [AC_MSG_ERROR([MPFR library was not found.])])
+
+AC_SEARCH_LIBS([fmpz_add_ui],[flint],
+    [],
+    [AC_MSG_ERROR([FLINT library was not found.])])
 
 # check if we want OpenMP support
 AC_ARG_ENABLE([openmp],
@@ -122,7 +132,14 @@ AC_CONFIG_LINKS([
  output_files/nonradical_radicalshape-qq.res:output_files/nonradical_radicalshape-qq.res
  output_files/nonradical_radicalshape-qq.p3.res:output_files/nonradical_radicalshape-qq.p3.res
  test/diff/diff_nonradical_radicalshape-qq.sh:test/diff/diff_nonradical_radicalshape-qq.sh
- input_files/one-16.ms:input_files/one-16.ms
+ input_files/nonradical_radicalshape-no-square-31.ms:input_files/nonradical_radicalshape-no-square-31.ms
+ output_files/nonradical_radicalshape-no-square-31.c0.res:output_files/nonradical_radicalshape-no-square-31.c0.res
+ test/diff/diff_nonradical_radicalshape-no-square-31.sh:test/diff/diff_nonradical_radicalshape-no-square-31.sh
+ input_files/nonradical_radicalshape-no-square-qq.ms:input_files/nonradical_radicalshape-no-square-qq.ms
+ output_files/nonradical_radicalshape-no-square-qq.res:output_files/nonradical_radicalshape-no-square-qq.res
+ output_files/nonradical_radicalshape-no-square-qq.p3.res:output_files/nonradical_radicalshape-no-square-qq.p3.res
+ test/diff/diff_nonradical_radicalshape-no-square-qq.sh:test/diff/diff_nonradical_radicalshape-no-square-qq.sh
+input_files/one-16.ms:input_files/one-16.ms
  output_files/one-16.res:output_files/one-16.res
  test/diff/diff_one-16.sh:test/diff/diff_one-16.sh
  input_files/one-31.ms:input_files/one-31.ms
