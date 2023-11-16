@@ -6137,7 +6137,7 @@ void msolve_solutions_clear(msolve_re_solutions_t sols)
 double *get_sols_buffer(msolve_re_solutions_t sols )
 {
 	long nb_real_roots = sols->nb_real_roots;
-	if( nb_real_roots != NULL )
+	if( nb_real_roots != 0 )
 	{
 		long nvars = sols->real_pts[0]->nvars;
 		double *buffer = malloc(sols->nb_real_roots*nvars*sizeof(double));
