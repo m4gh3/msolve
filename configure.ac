@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT([msolve], [0.6.1], [ederc@mathematik.uni-kl.de,mohab.safey@lip6.fr])
+AC_INIT([msolve], [0.6.2], [ederc@mathematik.uni-kl.de,mohab.safey@lip6.fr])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign silent-rules subdir-objects color-tests parallel-tests])
 AC_CONFIG_SRCDIR([config.h.in])
 AC_CONFIG_MACRO_DIR([m4])
@@ -159,10 +159,18 @@ input_files/one-16.ms:input_files/one-16.ms
  output_files/reals_dim0.res:output_files/reals_dim0.res
  output_files/reals_dim0.p256.res:output_files/reals_dim0.p256.res
  test/diff/diff_reals_dim0.sh:test/diff/diff_reals_dim0.sh
+ input_files/realroot-extract.ms:input_files/realroot-extract.ms
+ output_files/realroot-extract.res:output_files/realroot-extract.res
+ output_files/realroot-extract.p256.res:output_files/realroot-extract.p256.res
+ test/diff/diff_reals_extract.sh:test/diff/diff_reals_extract.sh
  input_files/reals_dim0-swapvar.ms:input_files/reals_dim0-swapvar.ms
  output_files/reals_dim0-swapvar.res:output_files/reals_dim0-swapvar.res
  output_files/reals_dim0-swapvar.p256.res:output_files/reals_dim0-swapvar.p256.res
  test/diff/diff_reals_dim0-swapvar.sh:test/diff/diff_reals_dim0-swapvar.sh
+ input_files/bug-chgvar.ms:input_files/bug-chgvar.ms
+ output_files/bug-chgvar.res:output_files/bug-chgvar.res
+ output_files/bug-chgvar.p256.res:output_files/bug-chgvar.p256.res
+ test/diff/diff_reals_dim0-chgvar.sh:test/diff/diff_reals_dim0-chgvar.sh
  input_files/bug-empty-tracer.ms:input_files/bug-empty-tracer.ms
  output_files/bug-empty-tracer.res:output_files/bug-empty-tracer.res
  test/diff/diff_bug_empty_tracer.sh:test/diff/diff_bug_empty_tracer.sh
@@ -190,5 +198,8 @@ input_files/one-16.ms:input_files/one-16.ms
  input_files/nf-31.ms:input_files/nf-31.ms
  output_files/nf-31.res:output_files/nf-31.res
  test/diff/diff_nf_31.sh:test/diff/diff_nf_31.sh
+ input_files/nf-lm-bug.ms:input_files/nf-lm-bug.ms
+ output_files/nf-lm-bug.res:output_files/nf-lm-bug.res
+ test/diff/diff_nf_lm_bug.sh:test/diff/diff_nf_lm_bug.sh
 ])
 AC_OUTPUT
