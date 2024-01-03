@@ -31,6 +31,7 @@ typedef uint32_t szmat_t;
 typedef uint32_t CF_t;
 typedef uint64_t CF_l_t;
 typedef uint32_t mod_t;
+typedef int32_t nvars_t;
 /* typedef __uint128_t CF_L_t; */
 
 /**
@@ -119,8 +120,10 @@ typedef struct{
 
 typedef struct{
   mp_limb_t charac;
-  long nvars;
+  nvars_t nvars;
   nmod_poly_t elim;
   nmod_poly_t denom;
   nmod_poly_t *coords;
 } param_t;
+
+

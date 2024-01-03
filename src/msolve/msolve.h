@@ -30,7 +30,7 @@
 void display_gens(FILE *fh, data_gens_ff_t *gens);
 
 int msolve_trace_qq(
-        mpz_param_t mpz_param,
+        mpz_param_t *mpz_paramp,
         param_t **nmod_param,
         int *dim_ptr,
         long *dquot_ptr,
@@ -91,7 +91,7 @@ int msolve_qq(
 #endif
 
 int real_msolve_qq(
-        mpz_param_t mp_param,
+        mpz_param_t *mpz_paramp,
         param_t **nmod_param,
         int *dim_ptr,
         long *dquot_ptr,
