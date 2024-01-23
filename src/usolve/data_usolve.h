@@ -18,6 +18,7 @@
  * Christian Eder
  * Mohab Safey El Din */
 
+
 #pragma once
 #ifndef USOLVE_DATA_USOLVE_H
 #define USOLVE_DATA_USOLVE_H
@@ -29,6 +30,7 @@ typedef struct
   unsigned int isexact;
   int sign_left;
 } interval;
+
 
 typedef struct{
   int search;/*when >0 (resp. <0, =0) computes positive (resp. negative, all) roots */

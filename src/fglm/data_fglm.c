@@ -18,7 +18,14 @@
  * Christian Eder
  * Mohab Safey El Din */
 
-#include "data_fglm.h"
+//#include "data_fglm.h"
+#include<stdint.h>
+#include <flint/flint.h>
+#include <flint/longlong.h>
+#include <flint/mpn_extras.h>
+#include <flint/nmod_poly.h>
+#include <flint/nmod_poly_factor.h>
+#include <flint/ulong_extras.h>
 
 
 static inline void free_sp_mat_fglm(sp_matfglm_t *mat){
