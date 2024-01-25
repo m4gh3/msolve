@@ -3664,6 +3664,13 @@ int core_msolve(
   )
 {
 
+   //info_level hack:
+  int print_sols = 1;
+  if(info_level < 0){
+    print_sols = 0;
+    info_level = 0;
+  }
+
     param_t *param  = NULL;
     int32_t *bld    = NULL;
     int32_t **blen  = NULL;
@@ -4176,11 +4183,13 @@ restart:
             return 0;
           }
 
-          manage_output(b, dim, dquot, files, gens, param, mpz_paramp, get_param,
-                        nb_real_roots_ptr,
-                        real_roots_ptr,
-                        real_pts_ptr,
-                        info_level);
+          if(print_sols){
+            manage_output(b, dim, dquot, files, gens, param, mpz_paramp, get_param,
+                          nb_real_roots_ptr,
+                          real_roots_ptr,
+                          real_pts_ptr,
+                          info_level);
+          }
 
 
           /* if (b == 0 && gens->field_char > 0) { */
@@ -4863,12 +4872,15 @@ restart:
             if(print_gb){
               return 0;
             }
+            
+            if(print_sols){
+              manage_output(b, dim, dquot, files, gens, param, mpz_paramp, get_param,
+                            nb_real_roots_ptr,
+                            real_roots_ptr,
+                            real_pts_ptr,
+                            info_level);
+            }
 
-            manage_output(b, dim, dquot, files, gens, param, mpz_paramp, get_param,
-                          nb_real_roots_ptr,
-                          real_roots_ptr,
-                          real_pts_ptr,
-                          info_level);
             if (b == 1) {
                 free(bld);
                 bld = NULL;
@@ -5361,7 +5373,7 @@ void msolve_from_fmpq_mpolys(msolve_re_solutions_t sols, fmpq_mpoly_t *polys, si
     int32_t la_option             = 2; // by default
     int32_t use_signatures        = 0;
     int32_t nr_threads            = 1;
-    int32_t info_level            = 0;
+    int32_t info_level            = -1; //info_level hack
     int32_t initial_hts           = 17;
     int32_t max_pairs             = 0;
     int32_t elim_block_len        = 0;
