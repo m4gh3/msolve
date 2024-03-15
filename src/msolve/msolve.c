@@ -5385,6 +5385,7 @@ void msolve_from_fmpq_mpolys(msolve_re_solutions_t sols, fmpq_mpoly_t *polys, si
     int32_t generate_pbm          = 0;
     int32_t reduce_gb             = 1;
     int32_t print_gb              = 0;
+    int32_t truncate_lifting      = 0;
     int32_t genericity_handling   = 2;
     int32_t saturate              = 0;
     int32_t colon                 = 0;
@@ -5421,7 +5422,7 @@ void msolve_from_fmpq_mpolys(msolve_re_solutions_t sols, fmpq_mpoly_t *polys, si
     /* main msolve functionality */
     int ret = core_msolve(la_option, use_signatures, nr_threads, info_level,
                           initial_hts, max_pairs, elim_block_len, update_ht,
-                          generate_pbm, reduce_gb, print_gb, get_param,
+                          generate_pbm, reduce_gb, print_gb, truncate_lifting, get_param,
                           genericity_handling, saturate, colon, normal_form,
                           normal_form_matrix, is_gb, precision, 
                           files, gens,
